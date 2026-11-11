@@ -1,11 +1,11 @@
 -- Social Media QR Portal - MariaDB schema
 -- Import with: mysql -u <user> -p < database/schema.sql
 
-CREATE DATABASE IF NOT EXISTS social_qr_portal
+CREATE DATABASE IF NOT EXISTS uboafojr_qrportal
   CHARACTER SET utf8mb4
   COLLATE utf8mb4_unicode_ci;
 
-USE social_qr_portal;
+USE uboafojr_qrportal;
 
 CREATE TABLE IF NOT EXISTS admins (
   id INT UNSIGNED NOT NULL AUTO_INCREMENT,

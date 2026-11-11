@@ -2,7 +2,7 @@
 -- Default admin: username "admin", password "admin123" (CHANGE AFTER FIRST LOGIN)
 -- Hash generated with bcryptjs, 12 rounds.
 
-USE social_qr_portal;
+USE uboafojr_qrportal;
 
 INSERT INTO admins (username, password_hash)
 VALUES ('admin', '$2a$12$fj4n3tFj3sNT0ePyaLiTneAkXMZwUby1PNBXNrZ9kj4f1rlScwizW')
