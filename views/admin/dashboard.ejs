@@ -1,0 +1,172 @@
+<%- include('../partials/adminHeader', { pageTitle: 'Dashboard' }) %>
+
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+  <h1 class="h3 mb-0">Dashboard</h1>
+  <a href="/admin/organizations/new" class="btn btn-primary">
+    <i class="bi bi-plus-lg me-1"></i>New Organization
+  </a>
+</div>
+
+<% if (flash) { %>
+  <div class="alert alert-success alert-dismissible fade show">
+    <%= flash %>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+<% } %>
+
+<div class="row g-3 mb-4">
+  <div class="col-6 col-lg-2"><div class="card stat-card h-100"><div class="card-body">
+    <div class="stat-label">Total Orgs</div><div class="stat-value"><%= counts.total %></div>
+  </div></div></div>
+  <div class="col-6 col-lg-2"><div class="card stat-card h-100"><div class="card-body">
+    <div class="stat-label">Active</div><div class="stat-value text-success"><%= counts.active %></div>
+  </div></div></div>
+  <div class="col-6 col-lg-2"><div class="card stat-card h-100"><div class="card-body">
+    <div class="stat-label">Inactive</div><div class="stat-value text-warning"><%= counts.inactive %></div>
+  </div></div></div>
+  <div class="col-6 col-lg-2"><div class="card stat-card h-100"><div class="card-body">
+    <div class="stat-label">QR Codes</div><div class="stat-value"><%= counts.total %></div>
+  </div></div></div>
+  <div class="col-6 col-lg-2"><div class="card stat-card h-100"><div class="card-body">
+    <div class="stat-label">Total Scans</div><div class="stat-value text-primary"><%= scanSummary.total %></div>
+  </div></div></div>
+  <div class="col-6 col-lg-2"><div class="card stat-card h-100"><div class="card-body">
+    <div class="stat-label">Scans Today</div><div class="stat-value"><%= scanSummary.today %></div>
+  </div></div></div>
+</div>
+
+<div class="card mb-4">
+  <div class="card-header bg-transparent d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <span class="fw-semibold">Organizations</span>
+    <form class="d-flex gap-2" method="GET" action="/admin">
+      <input type="hidden" name="sort" value="<%= query.sort %>">
+      <input type="hidden" name="dir" value="<%= query.dir %>">
+      <% if (query.archived) { %><input type="hidden" name="archived" value="1"><% } %>
+      <input type="search" class="form-control form-control-sm" name="search" placeholder="Search name, slug, ID…" value="<%= query.search %>">
+      <button class="btn btn-sm btn-outline-secondary" type="submit"><i class="bi bi-search"></i></button>
+    </form>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead>
+        <tr>
+          <th>Logo</th>
+          <% const mkSort = (col, label) => {
+               const nextDir = (query.sort === col && query.dir === 'asc') ? 'desc' : 'asc';
+               const icon = query.sort === col ? (query.dir === 'asc' ? '▲' : '▼') : '';
+               return `<a class="text-decoration-none text-reset" href="/admin?search=${encodeURIComponent(query.search)}&sort=${col}&dir=${nextDir}${query.archived ? '&archived=1' : ''}">${label} ${icon}</a>`;
+             } %>
+          <th><%- mkSort('name', 'Name') %></th>
+          <th><%- mkSort('slug', 'Slug') %></th>
+          <th>Permanent QR Destination</th>
+          <th><%- mkSort('status', 'Status') %></th>
+          <th><%- mkSort('created_at', 'Created') %></th>
+          <th class="text-end">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if (orgList.rows.length === 0) { %>
+          <tr><td colspan="7" class="text-center text-secondary py-4">No organizations found. <a href="/admin/organizations/new">Create the first one</a>.</td></tr>
+        <% } %>
+        <% for (const org of orgList.rows) { %>
+          <tr class="<%= org.archived_at ? 'table-secondary' : '' %>">
+            <td>
+              <% if (org.logo) { %>
+                <img src="/uploads/logos/<%= org.logo %>" alt="" class="org-logo-sm">
+              <% } else { %>
+                <span class="org-logo-sm d-inline-flex align-items-center justify-content-center bg-light text-secondary rounded"><i class="bi bi-building"></i></span>
+              <% } %>
+            </td>
+            <td>
+              <div class="fw-semibold"><%= org.name %></div>
+              <div class="small text-secondary"><%= org.permanent_id %><%= org.archived_at ? ' · archived' : '' %></div>
+            </td>
+            <td><code class="small"><%= org.slug %></code></td>
+            <td><a href="<%= org.permanent_qr_url %>" target="_blank" rel="noopener" class="small text-decoration-none"><%= org.permanent_qr_url %> <i class="bi bi-box-arrow-up-right"></i></a></td>
+            <td>
+              <span class="badge <%= org.status === 'active' ? 'text-bg-success' : 'text-bg-warning' %>"><%= org.status %></span>
+            </td>
+            <td class="small text-secondary"><%= new Date(org.created_at).toLocaleDateString() %></td>
+            <td class="text-end">
+              <div class="btn-group btn-group-sm">
+                <a class="btn btn-outline-secondary" href="/admin/organizations/<%= org.id %>" title="View"><i class="bi bi-eye"></i></a>
+                <a class="btn btn-outline-secondary" href="/admin/organizations/<%= org.id %>/edit" title="Edit"><i class="bi bi-pencil"></i></a>
+                <a class="btn btn-outline-secondary" href="/admin/organizations/<%= org.id %>/social-links" title="Social links"><i class="bi bi-share"></i></a>
+                <a class="btn btn-outline-secondary" href="/admin/organizations/<%= org.id %>/qr" title="QR code"><i class="bi bi-qr-code"></i></a>
+                <a class="btn btn-outline-secondary" href="/admin/analytics?org=<%= org.id %>" title="Analytics"><i class="bi bi-graph-up"></i></a>
+                <button type="button" class="btn btn-outline-secondary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown"></button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                  <li>
+                    <form method="POST" action="/admin/organizations/<%= org.id %>/toggle-status">
+                      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                      <button class="dropdown-item" type="submit">
+                        <i class="bi bi-toggle2-<%= org.status === 'active' ? 'off' : 'on' %> me-2"></i><%= org.status === 'active' ? 'Deactivate' : 'Activate' %>
+                      </button>
+                    </form>
+                  </li>
+                  <li><a class="dropdown-item" href="/admin/organizations/<%= org.id %>/qr"><i class="bi bi-download me-2"></i>Download QR</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <% if (org.archived_at) { %>
+                    <li>
+                      <form method="POST" action="/admin/organizations/<%= org.id %>/restore">
+                        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                        <button class="dropdown-item" type="submit"><i class="bi bi-arrow-counterclockwise me-2"></i>Restore</button>
+                      </form>
+                    </li>
+                    <li>
+                      <form method="POST" action="/admin/organizations/<%= org.id %>/delete" data-confirm="Permanently delete this organization? Its permanent identifier will stay reserved and cannot be reused.">
+                        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                        <button class="dropdown-item text-danger" type="submit"><i class="bi bi-trash me-2"></i>Delete permanently</button>
+                      </form>
+                    </li>
+                  <% } else { %>
+                    <li>
+                      <form method="POST" action="/admin/organizations/<%= org.id %>/archive" data-confirm="Archive this organization? Its landing page will show as not found, but its permanent identifier and QR destination are preserved.">
+                        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                        <button class="dropdown-item text-danger" type="submit"><i class="bi bi-archive me-2"></i>Archive</button>
+                      </form>
+                    </li>
+                  <% } %>
+                </ul>
+              </div>
+            </td>
+          </tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+  <div class="card-footer bg-transparent d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <span class="small text-secondary"><%= orgList.total %> organization(s) · page <%= orgList.page %> of <%= orgList.pages %></span>
+    <div class="d-flex align-items-center gap-3">
+      <a class="small text-decoration-none" href="/admin?archived=<%= query.archived ? '' : '1' %>">
+        <%= query.archived ? 'Hide archived' : 'Show archived' %>
+      </a>
+      <nav>
+        <ul class="pagination pagination-sm mb-0">
+          <% for (let p = 1; p <= orgList.pages; p += 1) { %>
+            <li class="page-item <%= p === orgList.page ? 'active' : '' %>">
+              <a class="page-link" href="/admin?search=<%= encodeURIComponent(query.search) %>&sort=<%= query.sort %>&dir=<%= query.dir %>&page=<%= p %><%= query.archived ? '&archived=1' : '' %>"><%= p %></a>
+            </li>
+          <% } %>
+        </ul>
+      </nav>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header bg-transparent fw-semibold">Recent Activity</div>
+  <ul class="list-group list-group-flush">
+    <% if (activity.length === 0) { %>
+      <li class="list-group-item text-secondary small">No activity yet.</li>
+    <% } %>
+    <% for (const item of activity) { %>
+      <li class="list-group-item d-flex justify-content-between align-items-center">
+        <span class="small"><%= item.description %></span>
+        <span class="small text-secondary text-nowrap ms-3"><%= new Date(item.created_at).toLocaleString() %></span>
+      </li>
+    <% } %>
+  </ul>
+</div>
+
+<%- include('../partials/adminFooter') %>

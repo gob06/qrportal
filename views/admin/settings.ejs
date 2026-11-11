@@ -1,0 +1,84 @@
+<%- include('../partials/adminHeader', { pageTitle: 'Settings' }) %>
+
+<h1 class="h3 mb-4">System Settings</h1>
+
+<% if (flash) { %>
+  <div class="alert alert-success alert-dismissible fade show">
+    <%= flash %>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+<% } %>
+<% if (errors.length) { %>
+  <div class="alert alert-danger"><ul class="mb-0"><% for (const e of errors) { %><li><%= e %></li><% } %></ul></div>
+<% } %>
+
+<form method="POST" action="/admin/settings" class="row g-4">
+  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+  <div class="col-lg-6">
+    <div class="card h-100">
+      <div class="card-header bg-transparent fw-semibold">Website</div>
+      <div class="card-body">
+        <div class="mb-3">
+          <label class="form-label" for="site_name">Website name</label>
+          <input type="text" class="form-control" id="site_name" name="site_name" maxlength="100" value="<%= settings.site_name %>">
+        </div>
+        <div class="mb-3">
+          <label class="form-label" for="site_url">Website URL</label>
+          <input type="url" class="form-control" id="site_url" name="site_url" maxlength="255" value="<%= settings.site_url %>">
+          <div class="form-text">Used for display only. Existing permanent QR destinations are never rewritten.</div>
+        </div>
+        <div class="mb-0">
+          <label class="form-label" for="upload_max_mb">Upload size limit (MB)</label>
+          <input type="number" class="form-control" id="upload_max_mb" name="upload_max_mb" min="1" max="20" value="<%= settings.upload_max_mb %>">
+          <div class="form-text">Hard limit also enforced by UPLOAD_MAX_SIZE_MB in .env (requires restart).</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-6">
+    <div class="card h-100">
+      <div class="card-header bg-transparent fw-semibold">QR defaults</div>
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-6">
+            <label class="form-label" for="qr_default_fg">Default foreground</label>
+            <input type="color" class="form-control form-control-color w-100" id="qr_default_fg" name="qr_default_fg" value="<%= settings.qr_default_fg %>">
+          </div>
+          <div class="col-6">
+            <label class="form-label" for="qr_default_bg">Default background</label>
+            <input type="color" class="form-control form-control-color w-100" id="qr_default_bg" name="qr_default_bg" value="<%= settings.qr_default_bg %>">
+          </div>
+          <div class="col-6">
+            <label class="form-label" for="qr_default_size">Default size (px)</label>
+            <select class="form-select" id="qr_default_size" name="qr_default_size">
+              <% for (const s of [256, 512, 768, 1024, 2048]) { %>
+                <option value="<%= s %>" <%= String(s) === String(settings.qr_default_size) ? 'selected' : '' %>><%= s %></option>
+              <% } %>
+            </select>
+          </div>
+          <div class="col-6">
+            <label class="form-label" for="qr_default_ec">Default error correction</label>
+            <select class="form-select" id="qr_default_ec" name="qr_default_ec">
+              <% for (const ec of ['L', 'M', 'Q', 'H']) { %>
+                <option value="<%= ec %>" <%= settings.qr_default_ec === ec ? 'selected' : '' %>><%= ec %></option>
+              <% } %>
+            </select>
+          </div>
+          <div class="col-12">
+            <label class="form-label" for="analytics_retention_days">Analytics retention (days)</label>
+            <input type="number" class="form-control" id="analytics_retention_days" name="analytics_retention_days" min="1" max="3650" value="<%= settings.analytics_retention_days %>">
+            <div class="form-text">Scan records older than this are deleted when settings are saved.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12">
+    <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Save settings</button>
+  </div>
+</form>
+
+<%- include('../partials/adminFooter') %>

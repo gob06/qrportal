@@ -1,0 +1,101 @@
+<%- include('../partials/adminHeader', { pageTitle: `QR Code · ${org.name}` }) %>
+
+<div class="d-flex align-items-center mb-4 gap-2">
+  <a href="/admin/organizations/<%= org.id %>" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left"></i></a>
+  <h1 class="h3 mb-0">QR Code · <%= org.name %></h1>
+</div>
+
+<div class="alert alert-info d-flex align-items-start gap-2">
+  <i class="bi bi-shield-lock fs-5"></i>
+  <div class="small">
+    Every QR code generated here encodes the <strong>permanent destination</strong>
+    <code><%= org.permanent_qr_url %></code> stored in the database.
+    Re-downloading, restyling or re-sizing the QR never changes where it points.
+  </div>
+</div>
+
+<div class="row g-4" id="qrPage" data-org-id="<%= org.id %>" data-has-logo="<%= org.logo ? '1' : '0' %>">
+  <div class="col-lg-5">
+    <div class="card">
+      <div class="card-header bg-transparent fw-semibold">Live preview</div>
+      <div class="card-body text-center">
+        <img id="qrPreview" src="/admin/organizations/<%= org.id %>/qr/preview" alt="QR code preview" class="img-fluid qr-preview border rounded">
+      </div>
+      <div class="card-footer bg-transparent small text-secondary">
+        <div><strong>Organization:</strong> <%= org.name %> (<%= org.permanent_id %>)</div>
+        <div><strong>Destination:</strong> <a href="<%= org.permanent_qr_url %>" target="_blank" rel="noopener"><%= org.permanent_qr_url %></a></div>
+        <div><strong>Created:</strong> <%= new Date(org.created_at).toLocaleString() %></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-7">
+    <div class="card mb-4">
+      <div class="card-header bg-transparent fw-semibold">Customize</div>
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-6 col-md-3">
+            <label class="form-label small" for="qrFg">Foreground</label>
+            <input type="color" class="form-control form-control-color w-100 js-qr-opt" id="qrFg" value="<%= defaults.fg %>">
+          </div>
+          <div class="col-6 col-md-3">
+            <label class="form-label small" for="qrBg">Background</label>
+            <input type="color" class="form-control form-control-color w-100 js-qr-opt" id="qrBg" value="<%= defaults.bg %>">
+          </div>
+          <div class="col-6 col-md-3">
+            <label class="form-label small" for="qrSize">Size (px)</label>
+            <select class="form-select js-qr-opt" id="qrSize">
+              <% for (const s of [256, 512, 768, 1024, 2048]) { %>
+                <option value="<%= s %>" <%= String(s) === String(defaults.size) ? 'selected' : '' %>><%= s %></option>
+              <% } %>
+            </select>
+          </div>
+          <div class="col-6 col-md-3">
+            <label class="form-label small" for="qrMargin">Margin</label>
+            <select class="form-select js-qr-opt" id="qrMargin">
+              <% for (const m of [0, 1, 2, 3, 4]) { %>
+                <option value="<%= m %>" <%= m === 2 ? 'selected' : '' %>><%= m %></option>
+              <% } %>
+            </select>
+          </div>
+          <div class="col-6 col-md-4">
+            <label class="form-label small" for="qrEc">Error correction</label>
+            <select class="form-select js-qr-opt" id="qrEc">
+              <option value="L" <%= defaults.ec === 'L' ? 'selected' : '' %>>L (7%)</option>
+              <option value="M" <%= defaults.ec === 'M' ? 'selected' : '' %>>M (15%)</option>
+              <option value="Q" <%= defaults.ec === 'Q' ? 'selected' : '' %>>Q (25%)</option>
+              <option value="H" <%= defaults.ec === 'H' ? 'selected' : '' %>>H (30%)</option>
+            </select>
+            <div class="form-text">Forced to H when a logo is embedded.</div>
+          </div>
+          <div class="col-6 col-md-8 d-flex align-items-center">
+            <div class="form-check form-switch mt-3">
+              <input class="form-check-input js-qr-opt" type="checkbox" id="qrLogo" <%= org.logo ? '' : 'disabled' %>>
+              <label class="form-check-label" for="qrLogo">
+                Embed organization logo in center
+                <% if (!org.logo) { %><span class="text-secondary small">(upload a logo first)</span><% } %>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header bg-transparent fw-semibold">Download</div>
+      <div class="card-body d-flex flex-wrap gap-2">
+        <a id="dlPng" class="btn btn-primary" href="/admin/organizations/<%= org.id %>/qr/download.png">
+          <i class="bi bi-filetype-png me-1"></i>Download PNG
+        </a>
+        <a id="dlSvg" class="btn btn-outline-primary" href="/admin/organizations/<%= org.id %>/qr/download.svg">
+          <i class="bi bi-filetype-svg me-1"></i>Download SVG
+        </a>
+      </div>
+      <div class="card-footer bg-transparent small text-secondary">
+        The PNG downloads at the selected size; the SVG scales to any resolution. Both always encode the same permanent URL.
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/adminFooter') %>

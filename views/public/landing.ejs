@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title><%= org.name %> · Connect with us</title>
+  <meta name="description" content="<%= org.description || `Connect with ${org.name} on social media` %>">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="/css/landing.css" rel="stylesheet">
+  <style>
+    :root {
+      --org-primary: <%= org.primary_color %>;
+      --org-secondary: <%= org.secondary_color %>;
+      --org-bg: <%= org.background_color %>;
+    }
+  </style>
+</head>
+<body class="landing-body">
+  <main class="landing-wrap">
+    <div class="landing-card">
+      <% if (org.logo) { %>
+        <img src="/uploads/logos/<%= org.logo %>" alt="<%= org.name %> logo" class="landing-logo">
+      <% } else { %>
+        <div class="landing-logo landing-logo-placeholder"><i class="bi bi-building"></i></div>
+      <% } %>
+      <h1 class="landing-title"><%= org.name %></h1>
+      <% if (org.description) { %>
+        <p class="landing-tagline"><%= org.description %></p>
+      <% } %>
+
+      <div class="landing-links">
+        <% if (links.length === 0) { %>
+          <p class="text-center text-secondary">No links available yet. Check back soon!</p>
+        <% } %>
+        <% for (const link of links) { %>
+          <% const meta = platformMeta(link.platform); %>
+          <% const isEmail = link.account_url.startsWith('mailto:'); %>
+          <a class="landing-link"
+             href="<%= link.account_url %>"
+             <%= isEmail ? '' : 'target="_blank" rel="noopener noreferrer"' %>>
+            <span class="landing-link-icon" style="background: <%= meta.color %>"><i class="bi <%= meta.icon %>"></i></span>
+            <span class="landing-link-text"><%= link.display_name %></span>
+            <i class="bi bi-chevron-right landing-link-chevron"></i>
+          </a>
+        <% } %>
+      </div>
+
+      <% if (org.contact_info) { %>
+        <p class="landing-contact"><i class="bi bi-info-circle me-1"></i><%= org.contact_info %></p>
+      <% } %>
+    </div>
+    <footer class="landing-footer">
+      Powered by <%= siteSettings.site_name %>
+    </footer>
+  </main>
+</body>
+</html>

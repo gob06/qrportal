@@ -1,0 +1,8 @@
+node_modules/
+.env
+.local-db/
+uploads/logos/*
+uploads/qrcodes/*
+!uploads/logos/.gitkeep
+!uploads/qrcodes/.gitkeep
+npm-debug.log

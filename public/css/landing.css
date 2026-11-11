@@ -1,0 +1,125 @@
+/* Public landing page styles (mobile-first) */
+:root {
+  --org-primary: #0d6efd;
+  --org-secondary: #6c757d;
+  --org-bg: #f8f9fa;
+}
+
+body.landing-body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--org-bg);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  display: flex;
+  flex-direction: column;
+}
+body.landing-neutral { --org-bg: #f1f3f6; }
+
+.landing-wrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+}
+
+.landing-card {
+  width: 100%;
+  max-width: 480px;
+  background: #fff;
+  border-radius: 1.25rem;
+  box-shadow: 0 8px 30px rgba(16, 24, 40, 0.12);
+  padding: 2rem 1.5rem;
+  text-align: center;
+}
+
+.landing-logo {
+  max-width: 120px;
+  max-height: 120px;
+  object-fit: contain;
+  margin-bottom: 1rem;
+}
+.landing-logo-placeholder {
+  width: 96px;
+  height: 96px;
+  margin: 0 auto 1rem;
+  border-radius: 50%;
+  background: var(--org-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.5rem;
+  color: var(--org-secondary);
+}
+
+.landing-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1c2333;
+  margin-bottom: 0.25rem;
+}
+.landing-tagline {
+  color: var(--org-secondary);
+  font-size: 0.95rem;
+  margin-bottom: 1.5rem;
+}
+
+.landing-links {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  text-align: left;
+}
+
+.landing-link {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.8rem 1rem;
+  border: 2px solid #eef0f4;
+  border-radius: 0.9rem;
+  text-decoration: none;
+  color: #1c2333;
+  font-weight: 600;
+  transition: transform 0.12s ease, border-color 0.12s ease, box-shadow 0.12s ease;
+}
+.landing-link:hover,
+.landing-link:focus {
+  border-color: var(--org-primary);
+  box-shadow: 0 4px 14px rgba(16, 24, 40, 0.1);
+  transform: translateY(-1px);
+  color: #1c2333;
+}
+
+.landing-link-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 0.7rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+.landing-link-text { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.landing-link-chevron { color: var(--org-secondary); }
+
+.landing-contact {
+  margin-top: 1.5rem;
+  margin-bottom: 0;
+  font-size: 0.85rem;
+  color: var(--org-secondary);
+}
+
+.landing-footer {
+  padding: 1rem;
+  font-size: 0.8rem;
+  color: var(--org-secondary);
+  text-align: center;
+}
+
+@media (min-width: 576px) {
+  .landing-card { padding: 2.5rem 2.25rem; }
+}

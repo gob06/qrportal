@@ -1,0 +1,117 @@
+<%- include('../partials/adminHeader', { pageTitle: org ? 'Edit Organization' : 'New Organization' }) %>
+
+<div class="d-flex align-items-center mb-4 gap-2">
+  <a href="<%= org ? `/admin/organizations/${org.id}` : '/admin' %>" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left"></i></a>
+  <h1 class="h3 mb-0"><%= org ? `Edit: ${org.name}` : 'New Organization' %></h1>
+</div>
+
+<% if (errors.length) { %>
+  <div class="alert alert-danger">
+    <ul class="mb-0">
+      <% for (const e of errors) { %><li><%= e %></li><% } %>
+    </ul>
+  </div>
+<% } %>
+
+<% if (org) { %>
+  <div class="alert alert-info d-flex align-items-start gap-2">
+    <i class="bi bi-shield-lock fs-5"></i>
+    <div>
+      <strong>Permanent QR destination (read-only):</strong>
+      <code><%= org.permanent_qr_url %></code><br>
+      <span class="small">Permanent ID <code><%= org.permanent_id %></code> was assigned at creation and can never change.
+      Editing the name, logo, colors or social links will <strong>not</strong> affect existing QR codes.</span>
+    </div>
+  </div>
+<% } %>
+
+<form method="POST" action="<%= org ? `/admin/organizations/${org.id}` : '/admin/organizations' %>" enctype="multipart/form-data" class="row g-4">
+  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+  <div class="col-lg-7">
+    <div class="card">
+      <div class="card-header bg-transparent fw-semibold">Details</div>
+      <div class="card-body">
+        <div class="mb-3">
+          <label class="form-label" for="name">Organization name *</label>
+          <input type="text" class="form-control" id="name" name="name" required minlength="2" maxlength="150"
+                 value="<%= values.name || '' %>">
+          <% if (org) { %><div class="form-text">Renaming updates the friendly slug but never the permanent QR destination.</div><% } %>
+        </div>
+        <div class="mb-3">
+          <label class="form-label" for="description">Description / tagline</label>
+          <textarea class="form-control" id="description" name="description" rows="3" maxlength="500"><%= values.description || '' %></textarea>
+        </div>
+        <div class="mb-3">
+          <label class="form-label" for="contact_info">Contact / website info</label>
+          <input type="text" class="form-control" id="contact_info" name="contact_info" maxlength="255"
+                 value="<%= values.contact_info || '' %>" placeholder="e.g. hello@example.org · www.example.org">
+        </div>
+        <div class="mb-0">
+          <label class="form-label" for="status">Status</label>
+          <select class="form-select" id="status" name="status">
+            <option value="active" <%= (values.status || 'active') === 'active' ? 'selected' : '' %>>Active</option>
+            <option value="inactive" <%= values.status === 'inactive' ? 'selected' : '' %>>Inactive</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-5">
+    <div class="card mb-4">
+      <div class="card-header bg-transparent fw-semibold">Logo</div>
+      <div class="card-body">
+        <div class="text-center mb-3">
+          <img id="logoPreview"
+               src="<%= org && org.logo ? `/uploads/logos/${org.logo}` : '' %>"
+               alt="Logo preview"
+               class="logo-preview <%= org && org.logo ? '' : 'd-none' %>">
+          <div id="logoPlaceholder" class="logo-preview-placeholder <%= org && org.logo ? 'd-none' : '' %>">
+            <i class="bi bi-image fs-1 text-secondary"></i>
+          </div>
+        </div>
+        <input type="file" class="form-control" name="logo" id="logoInput" accept="image/png,image/jpeg,image/webp">
+        <div class="form-text">PNG, JPG or WEBP · max <%= siteSettings.upload_max_mb %>MB · transparency supported.</div>
+        <% if (org && org.logo) { %>
+          <div class="form-check mt-2">
+            <input class="form-check-input" type="checkbox" name="remove_logo" value="1" id="removeLogo">
+            <label class="form-check-label" for="removeLogo">Remove current logo</label>
+          </div>
+        <% } %>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header bg-transparent fw-semibold">Branding</div>
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-4">
+            <label class="form-label small" for="primary_color">Primary</label>
+            <input type="color" class="form-control form-control-color w-100" id="primary_color" name="primary_color"
+                   value="<%= values.primary_color || '#0d6efd' %>">
+          </div>
+          <div class="col-4">
+            <label class="form-label small" for="secondary_color">Secondary</label>
+            <input type="color" class="form-control form-control-color w-100" id="secondary_color" name="secondary_color"
+                   value="<%= values.secondary_color || '#6c757d' %>">
+          </div>
+          <div class="col-4">
+            <label class="form-label small" for="background_color">Background</label>
+            <input type="color" class="form-control form-control-color w-100" id="background_color" name="background_color"
+                   value="<%= values.background_color || '#f8f9fa' %>">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12">
+    <button type="submit" class="btn btn-primary">
+      <i class="bi bi-check-lg me-1"></i><%= org ? 'Save changes' : 'Create organization' %>
+    </button>
+    <a href="<%= org ? `/admin/organizations/${org.id}` : '/admin' %>" class="btn btn-outline-secondary">Cancel</a>
+  </div>
+</form>
+
+<%- include('../partials/adminFooter') %>

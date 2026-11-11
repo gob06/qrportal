@@ -1,0 +1,117 @@
+<%- include('../partials/adminHeader', { pageTitle: `Social Links · ${org.name}` }) %>
+
+<div class="d-flex align-items-center mb-4 gap-2">
+  <a href="/admin/organizations/<%= org.id %>" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left"></i></a>
+  <h1 class="h3 mb-0">Social Links · <%= org.name %></h1>
+</div>
+
+<% if (flash) { %>
+  <div class="alert alert-success alert-dismissible fade show">
+    <%= flash %>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+<% } %>
+<% if (errors.length) { %>
+  <div class="alert alert-danger">
+    <ul class="mb-0"><% for (const e of errors) { %><li><%= e %></li><% } %></ul>
+  </div>
+<% } %>
+
+<div class="alert alert-light border small">
+  <i class="bi bi-info-circle me-1"></i>
+  Changes here appear immediately on the public landing page — the existing QR code keeps working and never needs to be reprinted.
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-7">
+    <div class="card">
+      <div class="card-header bg-transparent fw-semibold">Current links (drag order with arrows)</div>
+      <div class="list-group list-group-flush" id="linkList" data-org-id="<%= org.id %>" data-csrf="<%= csrfToken %>">
+        <% if (links.length === 0) { %>
+          <div class="list-group-item text-secondary small">No links yet. Add the first one on the right.</div>
+        <% } %>
+        <% for (const link of links) { %>
+          <% const meta = platformMeta(link.platform); %>
+          <div class="list-group-item d-flex align-items-center gap-3" data-link-id="<%= link.id %>">
+            <span class="platform-icon" style="background: <%= meta.color %>"><i class="bi <%= meta.icon %>"></i></span>
+            <div class="flex-grow-1 min-w-0">
+              <div class="fw-semibold"><%= link.display_name %> <span class="badge <%= link.status === 'active' ? 'text-bg-success' : 'text-bg-secondary' %> ms-1"><%= link.status %></span></div>
+              <div class="small text-secondary text-truncate"><%= meta.label %> · <%= link.account_url %></div>
+            </div>
+            <div class="btn-group btn-group-sm">
+              <button class="btn btn-outline-secondary js-move-up" type="button" title="Move up"><i class="bi bi-arrow-up"></i></button>
+              <button class="btn btn-outline-secondary js-move-down" type="button" title="Move down"><i class="bi bi-arrow-down"></i></button>
+              <button class="btn btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#edit-<%= link.id %>" title="Edit"><i class="bi bi-pencil"></i></button>
+            </div>
+            <form method="POST" action="/admin/organizations/<%= org.id %>/social-links/<%= link.id %>/toggle" class="d-inline">
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+              <button class="btn btn-sm <%= link.status === 'active' ? 'btn-outline-warning' : 'btn-outline-success' %>" type="submit" title="<%= link.status === 'active' ? 'Disable' : 'Enable' %>">
+                <i class="bi bi-toggle2-<%= link.status === 'active' ? 'off' : 'on' %>"></i>
+              </button>
+            </form>
+            <form method="POST" action="/admin/organizations/<%= org.id %>/social-links/<%= link.id %>/delete" class="d-inline" data-confirm="Delete this social link?">
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+              <button class="btn btn-sm btn-outline-danger" type="submit" title="Delete"><i class="bi bi-trash"></i></button>
+            </form>
+          </div>
+          <div class="collapse border-bottom" id="edit-<%= link.id %>">
+            <form method="POST" action="/admin/organizations/<%= org.id %>/social-links/<%= link.id %>" class="p-3 bg-light">
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+              <div class="row g-2">
+                <div class="col-md-3">
+                  <select class="form-select form-select-sm" name="platform">
+                    <% for (const p of platforms) { %>
+                      <option value="<%= p.key %>" <%= p.key === link.platform ? 'selected' : '' %>><%= p.label %></option>
+                    <% } %>
+                  </select>
+                </div>
+                <div class="col-md-3"><input class="form-control form-control-sm" name="display_name" value="<%= link.display_name %>" required maxlength="100"></div>
+                <div class="col-md-4"><input class="form-control form-control-sm" name="account_url" value="<%= link.account_url %>" required maxlength="500"></div>
+                <div class="col-md-2 d-grid"><button class="btn btn-sm btn-primary" type="submit">Save</button></div>
+              </div>
+              <input type="hidden" name="status" value="<%= link.status %>">
+            </form>
+          </div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-5">
+    <div class="card">
+      <div class="card-header bg-transparent fw-semibold">Add social link</div>
+      <div class="card-body">
+        <form method="POST" action="/admin/organizations/<%= org.id %>/social-links">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <div class="mb-3">
+            <label class="form-label" for="platform">Platform *</label>
+            <select class="form-select" id="platform" name="platform" required>
+              <% for (const p of platforms) { %>
+                <option value="<%= p.key %>"><%= p.label %></option>
+              <% } %>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label" for="display_name">Display name *</label>
+            <input type="text" class="form-control" id="display_name" name="display_name" required maxlength="100" placeholder="e.g. Follow us on Facebook">
+          </div>
+          <div class="mb-3">
+            <label class="form-label" for="account_url">Account URL *</label>
+            <input type="text" class="form-control" id="account_url" name="account_url" required maxlength="500" placeholder="https://facebook.com/yourpage">
+            <div class="form-text">For Email, enter an address (e.g. hello@example.org).</div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label" for="link_status">Status</label>
+            <select class="form-select" id="link_status" name="status">
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </select>
+          </div>
+          <button class="btn btn-primary" type="submit"><i class="bi bi-plus-lg me-1"></i>Add link</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/adminFooter') %>
