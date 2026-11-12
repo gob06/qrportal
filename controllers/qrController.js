@@ -2,6 +2,7 @@ const orgModel = require('../models/organizationModel');
 const settingsModel = require('../models/settingsModel');
 const adminModel = require('../models/adminModel');
 const qrService = require('../services/qrService');
+const imageService = require('../services/imageService');
 
 function optionsFromQuery(query, settings) {
   return qrService.sanitizeOptions({
@@ -21,6 +22,9 @@ async function generatorPage(req, res, next) {
     const settings = await settingsModel.getAll();
     res.render('admin/qrGenerator', {
       org,
+      errors: [],
+      flash: req.query.msg || null,
+      embedLogo: req.query.logo === '1',
       defaults: {
         fg: settings.qr_default_fg,
         bg: settings.qr_default_bg,
@@ -29,6 +33,56 @@ async function generatorPage(req, res, next) {
       }
     });
   } catch (err) {
+    next(err);
+  }
+}
+
+async function uploadLogo(req, res, next) {
+  let logo;
+  let saved = false;
+  try {
+    const org = await orgModel.findById(req.params.id);
+    if (!org) {
+      if (req.file) await imageService.deleteLogo(req.file.filename);
+      return res.status(404).render('admin/notFound');
+    }
+    const errors = [];
+    if (req.uploadError) errors.push(req.uploadError);
+    if (!req.file && !errors.length) errors.push('Please choose a logo image.');
+    if (!errors.length) {
+      try {
+        logo = await imageService.optimizeLogo(req.file.filename);
+      } catch (err) {
+        console.error('QR logo processing failed:', err);
+        errors.push('Could not process the logo. Please upload a valid PNG, JPG or WEBP image.');
+      }
+    }
+    if (errors.length) {
+      if (req.file) await imageService.deleteLogo(req.file.filename);
+      const settings = await settingsModel.getAll();
+      return res.status(400).render('admin/qrGenerator', {
+        org, errors, flash: null, embedLogo: Boolean(org.logo),
+        defaults: {
+          fg: settings.qr_default_fg, bg: settings.qr_default_bg,
+          size: settings.qr_default_size, ec: settings.qr_default_ec
+        }
+      });
+    }
+    await orgModel.update(org.id, { logo });
+    saved = true;
+    await imageService.deleteLogo(org.logo);
+    await adminModel.logActivity(req.session.adminId, 'org_logo_update',
+      `Updated logo for "${org.name}" (${org.permanent_id}) from QR generator`);
+    res.redirect(`/admin/organizations/${org.id}/qr?logo=1&msg=Organization logo updated. QR destination unchanged.`);
+  } catch (err) {
+    try {
+      if (!saved) {
+        if (req.file) await imageService.deleteLogo(req.file.filename);
+        if (logo) await imageService.deleteLogo(logo);
+      }
+    } catch (cleanupError) {
+      console.error('QR logo cleanup failed:', cleanupError);
+    }
     next(err);
   }
 }
@@ -86,4 +140,4 @@ async function downloadSvg(req, res, next) {
   }
 }
 
-module.exports = { generatorPage, preview, downloadPng, downloadSvg };
+module.exports = { generatorPage, uploadLogo, preview, downloadPng, downloadSvg };

@@ -1,11 +1,12 @@
 const orgModel = require('../models/organizationModel');
 const socialLinkModel = require('../models/socialLinkModel');
 const adminModel = require('../models/adminModel');
+const platformModel = require('../models/platformModel');
 
-function validateLinkInput(body) {
+function validateLinkInput(body, platforms) {
   const errors = [];
   const platform = String(body.platform || '').trim();
-  if (!socialLinkModel.PLATFORMS.some((p) => p.key === platform)) {
+  if (!platforms.some((p) => p.key === platform)) {
     errors.push('Please choose a valid platform.');
   }
   const displayName = String(body.display_name || '').trim().slice(0, 100);
@@ -32,11 +33,12 @@ async function managePage(req, res, next) {
     const org = await orgModel.findById(req.params.id);
     if (!org) return res.status(404).render('admin/notFound');
     const links = await socialLinkModel.listByOrganization(org.id);
+    const platforms = await platformModel.list();
     res.render('admin/socialLinks', {
       org,
       links,
-      platforms: socialLinkModel.PLATFORMS,
-      platformMeta: socialLinkModel.platformMeta,
+      platforms,
+      platformMeta: platformModel.metadata(platforms),
       errors: [],
       flash: req.query.msg || null
     });
@@ -49,13 +51,14 @@ async function createLink(req, res, next) {
   try {
     const org = await orgModel.findById(req.params.id);
     if (!org) return res.status(404).render('admin/notFound');
-    const { errors, data } = validateLinkInput(req.body);
+    const platforms = await platformModel.list();
+    const { errors, data } = validateLinkInput(req.body, platforms);
     if (errors.length) {
       const links = await socialLinkModel.listByOrganization(org.id);
       return res.status(400).render('admin/socialLinks', {
         org, links,
-        platforms: socialLinkModel.PLATFORMS,
-        platformMeta: socialLinkModel.platformMeta,
+        platforms,
+        platformMeta: platformModel.metadata(platforms),
         errors, flash: null
       });
     }
@@ -75,7 +78,8 @@ async function updateLink(req, res, next) {
     if (!org || !link || link.organization_id !== org.id) {
       return res.status(404).render('admin/notFound');
     }
-    const { errors, data } = validateLinkInput(req.body);
+    const platforms = await platformModel.list();
+    const { errors, data } = validateLinkInput(req.body, platforms);
     if (errors.length) {
       return res.redirect(`/admin/organizations/${org.id}/social-links?msg=${encodeURIComponent(errors[0])}`);
     }

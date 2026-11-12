@@ -15,12 +15,18 @@ async function optimizeLogo(filename) {
   const outputName = `${base}-opt.png`;
   const outputPath = path.join(LOGOS_DIR, outputName);
 
-  await sharp(inputPath)
-    .resize(600, 600, { fit: 'inside', withoutEnlargement: true })
-    .png({ compressionLevel: 9, adaptiveFiltering: true })
-    .toFile(outputPath);
-
-  await fs.unlink(inputPath).catch(() => {});
+  try {
+    const input = await fs.readFile(inputPath);
+    await sharp(input)
+      .resize(600, 600, { fit: 'inside', withoutEnlargement: true })
+      .png({ compressionLevel: 9, adaptiveFiltering: true })
+      .toFile(outputPath);
+    await fs.unlink(inputPath);
+  } catch (err) {
+    await deleteLogo(filename);
+    await deleteLogo(outputName);
+    throw err;
+  }
   return outputName;
 }
 
@@ -28,7 +34,11 @@ async function deleteLogo(filename) {
   if (!filename) return;
   // Guard against path traversal: only ever delete inside the logos dir.
   const safe = path.basename(filename);
-  await fs.unlink(path.join(LOGOS_DIR, safe)).catch(() => {});
+  try {
+    await fs.unlink(path.join(LOGOS_DIR, safe));
+  } catch (err) {
+    if (err.code !== 'ENOENT') throw err;
+  }
 }
 
 function logoPath(filename) {

@@ -81,4 +81,61 @@
   </div>
 </form>
 
+<section class="mt-5" id="social-platforms">
+  <h2 class="h4">Social platforms</h2>
+  <p class="text-secondary">Add a platform for all organizations, or customize an existing platform's name and logo. Changes appear on existing social links too.</p>
+  <div class="card mb-4">
+    <div class="card-header bg-transparent fw-semibold">Add platform</div>
+    <div class="card-body">
+      <form method="POST" action="/admin/settings/platforms" enctype="multipart/form-data" class="row g-3">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <div class="col-md-4">
+          <label class="form-label" for="platformLabel">Platform name</label>
+          <input class="form-control" id="platformLabel" name="label" minlength="2" maxlength="60" required placeholder="e.g. Discord">
+        </div>
+        <div class="col-md-5">
+          <label class="form-label" for="platformLogo">Platform logo</label>
+          <input class="form-control" type="file" id="platformLogo" name="logo" accept="image/png,image/jpeg,image/webp" required>
+          <div class="form-text">PNG, JPG or WEBP. Custom platform links accept HTTP or HTTPS URLs.</div>
+        </div>
+        <div class="col-md-3 d-flex align-items-start">
+          <button class="btn btn-primary mt-md-4" type="submit">Add platform</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header bg-transparent fw-semibold">Available platforms</div>
+    <div class="list-group list-group-flush">
+      <% for (const platform of platforms) { %>
+        <div class="list-group-item">
+          <form method="POST" action="/admin/settings/platforms/<%= platform.key %>" enctype="multipart/form-data" class="row g-2 align-items-center">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <div class="col-auto">
+              <span class="platform-icon" style="background: <%= platform.color %>">
+                <% if (platform.logo) { %>
+                  <img src="/uploads/logos/<%= platform.logo %>" alt="<%= platform.label %> logo">
+                <% } else { %>
+                  <i class="bi <%= platform.icon %>"></i>
+                <% } %>
+              </span>
+            </div>
+            <div class="col-md-3">
+              <label class="visually-hidden" for="label-<%= platform.key %>">Platform name</label>
+              <input class="form-control" id="label-<%= platform.key %>" name="label" value="<%= platform.label %>" minlength="2" maxlength="60" required>
+            </div>
+            <div class="col-md">
+              <label class="form-label small" for="logo-<%= platform.key %>"><%= platform.logo ? 'Replace logo (optional)' : 'Upload a logo to customize this platform' %></label>
+              <input class="form-control form-control-sm" id="logo-<%= platform.key %>" type="file" name="logo" accept="image/png,image/jpeg,image/webp" <%= platform.logo ? '' : 'required' %>>
+            </div>
+            <div class="col-auto">
+              <button class="btn btn-outline-primary btn-sm" type="submit">Save platform</button>
+            </div>
+          </form>
+        </div>
+      <% } %>
+    </div>
+  </div>
+</section>
+
 <%- include('../partials/adminFooter') %>

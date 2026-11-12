@@ -92,6 +92,14 @@ body.landing-neutral { --org-bg: #f1f3f6; }
   color: #1c2333;
 }
 
+.landing-link-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: inherit;
+  background: #fff;
+}
+
 .landing-link-icon {
   width: 42px;
   height: 42px;

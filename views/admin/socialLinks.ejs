@@ -33,7 +33,9 @@
         <% for (const link of links) { %>
           <% const meta = platformMeta(link.platform); %>
           <div class="list-group-item d-flex align-items-center gap-3" data-link-id="<%= link.id %>">
-            <span class="platform-icon" style="background: <%= meta.color %>"><i class="bi <%= meta.icon %>"></i></span>
+            <span class="platform-icon" style="background: <%= meta.color %>">
+              <% if (meta.logo) { %><img src="/uploads/logos/<%= meta.logo %>" alt="<%= meta.label %> logo"><% } else { %><i class="bi <%= meta.icon %>"></i><% } %>
+            </span>
             <div class="flex-grow-1 min-w-0">
               <div class="fw-semibold"><%= link.display_name %> <span class="badge <%= link.status === 'active' ? 'text-bg-success' : 'text-bg-secondary' %> ms-1"><%= link.status %></span></div>
               <div class="small text-secondary text-truncate"><%= meta.label %> · <%= link.account_url %></div>
@@ -90,6 +92,7 @@
                 <option value="<%= p.key %>"><%= p.label %></option>
               <% } %>
             </select>
+            <div class="form-text"><a href="/admin/settings#social-platforms">Add or customize platforms in Settings</a>.</div>
           </div>
           <div class="mb-3">
             <label class="form-label" for="display_name">Display name *</label>

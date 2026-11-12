@@ -1,6 +1,7 @@
 const orgModel = require('../models/organizationModel');
 const socialLinkModel = require('../models/socialLinkModel');
 const analyticsService = require('../services/analyticsService');
+const platformModel = require('../models/platformModel');
 
 /**
  * Public landing page. Resolves by the permanent identifier first (the value
@@ -26,10 +27,11 @@ async function landingPage(req, res, next) {
     analyticsService.recordScan(org.id, req).catch(() => {});
 
     const links = await socialLinkModel.listByOrganization(org.id, true);
+    const platforms = await platformModel.list();
     res.render('public/landing', {
       org,
       links,
-      platformMeta: socialLinkModel.platformMeta
+      platformMeta: platformModel.metadata(platforms)
     });
   } catch (err) {
     next(err);

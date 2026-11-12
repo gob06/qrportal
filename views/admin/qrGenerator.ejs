@@ -5,6 +5,13 @@
   <h1 class="h3 mb-0">QR Code · <%= org.name %></h1>
 </div>
 
+<% if (flash) { %>
+  <div class="alert alert-success"><%= flash %></div>
+<% } %>
+<% if (errors.length) { %>
+  <div class="alert alert-danger"><ul class="mb-0"><% for (const error of errors) { %><li><%= error %></li><% } %></ul></div>
+<% } %>
+
 <div class="alert alert-info d-flex align-items-start gap-2">
   <i class="bi bi-shield-lock fs-5"></i>
   <div class="small">
@@ -30,6 +37,19 @@
   </div>
 
   <div class="col-lg-7">
+    <div class="card mb-4">
+      <div class="card-header bg-transparent fw-semibold">Organization logo</div>
+      <div class="card-body">
+        <form method="POST" action="/admin/organizations/<%= org.id %>/qr/logo" enctype="multipart/form-data">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <img id="logoPreview" src="<%= org.logo ? '/uploads/logos/' + org.logo : '' %>" alt="Organization logo preview" class="logo-preview mb-3 <%= org.logo ? '' : 'd-none' %>">
+          <label class="form-label d-block" for="logoInput">Upload or replace logo</label>
+          <input class="form-control mb-2" type="file" id="logoInput" name="logo" accept="image/png,image/jpeg,image/webp" required>
+          <div class="form-text mb-3">PNG, JPG or WEBP. This replaces the organization's logo on its public page and in future QR downloads. The permanent QR destination stays unchanged.</div>
+          <button type="submit" class="btn btn-outline-primary">Upload logo</button>
+        </form>
+      </div>
+    </div>
     <div class="card mb-4">
       <div class="card-header bg-transparent fw-semibold">Customize</div>
       <div class="card-body">
@@ -70,7 +90,7 @@
           </div>
           <div class="col-6 col-md-8 d-flex align-items-center">
             <div class="form-check form-switch mt-3">
-              <input class="form-check-input js-qr-opt" type="checkbox" id="qrLogo" <%= org.logo ? '' : 'disabled' %>>
+              <input class="form-check-input js-qr-opt" type="checkbox" id="qrLogo" <%= org.logo ? '' : 'disabled' %> <%= org.logo && embedLogo ? 'checked' : '' %>>
               <label class="form-check-label" for="qrLogo">
                 Embed organization logo in center
                 <% if (!org.logo) { %><span class="text-secondary small">(upload a logo first)</span><% } %>

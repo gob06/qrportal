@@ -1,4 +1,5 @@
 const crypto = require('crypto');
+const { deleteLogo } = require('../services/imageService');
 
 /** Blocks access to admin routes for unauthenticated sessions. */
 function requireAuth(req, res, next) {
@@ -19,14 +20,22 @@ function csrfToken(req, res, next) {
 }
 
 /** Validates the CSRF token on state-changing requests. */
-function csrfProtect(req, res, next) {
+async function csrfProtect(req, res, next) {
   const mutating = ['POST', 'PUT', 'PATCH', 'DELETE'];
   if (!mutating.includes(req.method)) return next();
   const token = req.body?._csrf || req.get('x-csrf-token');
-  if (token && req.session.csrfToken && crypto.timingSafeEqual(
+  if (token && req.session.csrfToken &&
+    Buffer.byteLength(String(token)) === Buffer.byteLength(String(req.session.csrfToken)) && crypto.timingSafeEqual(
     Buffer.from(String(token)), Buffer.from(String(req.session.csrfToken))
   )) {
     return next();
+  }
+  if (req.file) {
+    try {
+      await deleteLogo(req.file.filename);
+    } catch (err) {
+      return next(err);
+    }
   }
   return res.status(403).send('Invalid CSRF token. Please go back, refresh the page, and try again.');
 }

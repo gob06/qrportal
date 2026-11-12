@@ -10,6 +10,7 @@ Built with Node.js, Express, MariaDB, EJS and Bootstrap 5.
 - **Permanent QR destinations** — every organization receives an immutable identifier (e.g. `ORG-000001`) at creation. The QR code always encodes `https://yourdomain.com/org/ORG-000001`, and this never changes — not when the name, logo, colors, links or page design change. Immutability is enforced in application code **and** by a database trigger, and retired identifiers are never reused (append-only registry table).
 - **QR code generator** — live preview, custom foreground/background colors, size (256–2048 px), margin, error-correction level, optional centered logo on a white tile (error correction forced to H), PNG and scalable SVG downloads.
 - **Social link management** — 11 platforms (Facebook, Instagram, TikTok, YouTube, LinkedIn, X, WhatsApp, Telegram, Website, Email, Custom URL), with display order, enable/disable, URL validation. Changes appear instantly on the public page without reprinting QR codes.
+- **Logo uploads and custom platforms** — upload or replace the organization logo directly on its QR generator page. In Settings, add global social platforms with names and uploaded logos, or customize existing platform logos; they are available to every organization and appear on public social links.
 - **Public landing pages** — mobile-first, branded with each organization's colors and logo. No visitor registration required.
 - **Privacy-respecting scan analytics** — total/daily/weekly/monthly visits per organization with charts. Only a one-way daily-salted hash is stored; no names, emails, phone numbers, locations or fingerprints.
 - **Security** — bcrypt password hashing, DB-backed sessions, session regeneration on login, CSRF protection, login rate limiting, Helmet security headers, parameterized queries everywhere, strict upload validation, sanitized filenames.
@@ -165,6 +166,10 @@ social-media-qr-portal/
 
 ### Production notes
 
+- Custom social platforms are stored in the existing `application_settings` table; no database migration or reimport is required. Back up `uploads/logos` along with the database to preserve both organization and platform logos. Uploads accept PNG, JPG and WEBP, are re-encoded as PNG, and follow `UPLOAD_MAX_SIZE_MB`.
+- On an organization's QR page, uploading a logo replaces its organization logo on the public page and in future QR previews/downloads. Enable "Embed organization logo in center" when downloading. Existing printed QR codes retain the same destination.
+- In **Settings → Social platforms**, add a platform name and logo, then select that platform when adding or editing an organization's social link. Custom platforms accept HTTP/HTTPS URLs; the built-in Email platform retains email-address handling. Editing a platform's name or logo updates existing links without changing their URLs.
+- Run `node --test scripts/startupTest.js scripts/featureTest.js` for startup and upload/platform regression tests. Feature tests use a test HTTP server, real image processing and templates, and an in-memory database adapter; they do not connect to your database.
 - The startup file owns the listener after its database check. Do not export the Express app from `server.js`: LiteSpeed's Node.js launcher can auto-listen on that export before asynchronous startup completes, causing `http.Server.listen() was called more than once`. Run `node --test scripts/startupTest.js` to check this startup behavior.
 - Sessions are stored in MariaDB (`sessions` table, auto-created), so they survive app restarts and Passenger process recycling.
 - Back up the database regularly (cPanel → *Backup*); the `organizations` and `permanent_id_registry` tables are the source of truth for QR permanence.
