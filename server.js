@@ -105,6 +105,7 @@ async function start() {
     console.error('Could not connect to the database. Check your .env settings.');
     console.error(err.message);
     process.exit(1);
+    return;
   }
   app.listen(PORT, () => {
     console.log(`Social QR Portal running at http://localhost:${PORT}`);
@@ -113,5 +114,3 @@ async function start() {
 }
 
 start();
-
-module.exports = app;

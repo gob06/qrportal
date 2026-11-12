@@ -165,6 +165,7 @@ social-media-qr-portal/
 
 ### Production notes
 
+- The startup file owns the listener after its database check. Do not export the Express app from `server.js`: LiteSpeed's Node.js launcher can auto-listen on that export before asynchronous startup completes, causing `http.Server.listen() was called more than once`. Run `node --test scripts/startupTest.js` to check this startup behavior.
 - Sessions are stored in MariaDB (`sessions` table, auto-created), so they survive app restarts and Passenger process recycling.
 - Back up the database regularly (cPanel → *Backup*); the `organizations` and `permanent_id_registry` tables are the source of truth for QR permanence.
 - `BASE_URL` changes only affect organizations created afterwards — existing permanent URLs are intentionally never rewritten. Keep the old domain redirecting if you ever migrate.
